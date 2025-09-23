@@ -27,7 +27,7 @@ export async function loader() {
   // These environment variables are available in the client (they aren't secret).
   // eslint-disable-next-line local/no-direct-process-env
   const CONVEX_URL = process.env.VITE_CONVEX_URL || globalThis.process.env.CONVEX_URL!;
-  const CONVEX_OAUTH_CLIENT_ID = globalThis.process.env.CONVEX_OAUTH_CLIENT_ID!;
+  const CONVEX_OAUTH_CLIENT_ID = process.env.CONVEX_OAUTH_CLIENT_ID || globalThis.process.env.CONVEX_OAUTH_CLIENT_ID!;
   const WORKOS_REDIRECT_URI =
     globalThis.process.env.VITE_WORKOS_REDIRECT_URI || globalThis.process.env.VERCEL_BRANCH_URL!;
   return json({
