@@ -91,6 +91,7 @@ export default defineConfig((config) => {
     },
     server: {
       host: '127.0.0.1',
+      port: 5173,
       // feel free to disable, just using this to foolproof dev
       strictPort: true,
     },
