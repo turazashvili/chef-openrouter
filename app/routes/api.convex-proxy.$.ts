@@ -32,7 +32,49 @@ async function handleProxyRequest({ request, params }: LoaderFunctionArgs) {
   console.log('✅ Using WorkOS token for authentication');
 
   try {
-    // Now forward the original request to api.convex.dev with the WorkOS token
+    // First, exchange the WorkOS token for a Convex Dashboard token
+    console.log('🔄 Exchanging WorkOS token for Convex Dashboard token...');
+    
+    const tokenExchangeResponse = await fetch('https://api.convex.dev/oauth/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        grant_type: 'urn:ietf:params:oauth:grant-type:token-exchange',
+        subject_token: workosToken,
+        subject_token_type: 'urn:ietf:params:oauth:token-type:access_token',
+        audience: 'https://api.convex.dev',
+      }),
+    });
+
+    console.log('📡 Token exchange response:', {
+      status: tokenExchangeResponse.status,
+      statusText: tokenExchangeResponse.statusText,
+      ok: tokenExchangeResponse.ok,
+      headers: Object.fromEntries(tokenExchangeResponse.headers.entries())
+    });
+
+    if (!tokenExchangeResponse.ok) {
+      const errorText = await tokenExchangeResponse.text();
+      console.error('❌ Failed to exchange WorkOS token:', {
+        status: tokenExchangeResponse.status,
+        statusText: tokenExchangeResponse.statusText,
+        error: errorText
+      });
+      return json({ error: 'Failed to exchange WorkOS token for Convex Dashboard token' }, { status: 500 });
+    }
+
+    const tokenData = await tokenExchangeResponse.json();
+    console.log('✅ Token exchange successful:', {
+      hasAccessToken: !!tokenData.access_token,
+      tokenType: tokenData.token_type,
+      expiresIn: tokenData.expires_in
+    });
+    
+    const convexDashboardToken = tokenData.access_token;
+
+    // Now forward the original request to api.convex.dev with the Convex Dashboard token
     const targetUrl = `https://api.convex.dev${path}${url.search}`;
     
     console.log('🔄 Forwarding request:', {
@@ -45,7 +87,7 @@ async function handleProxyRequest({ request, params }: LoaderFunctionArgs) {
     const response = await fetch(targetUrl, {
       method: request.method,
       headers: {
-        'Authorization': `Bearer ${workosToken}`,
+        'Authorization': `Bearer ${convexDashboardToken}`,
         'Content-Type': 'application/json',
         // Forward other relevant headers
         ...(request.headers.get('accept') && { 'Accept': request.headers.get('accept')! }),
