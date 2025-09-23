@@ -8,8 +8,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const path = `/${params['*'] || ''}`; // Get the catch-all parameter
   
   // Get the Convex OAuth credentials
-  const CLIENT_ID = process.env.CONVEX_OAUTH_CLIENT_ID;
-  const CLIENT_SECRET = process.env.CONVEX_OAUTH_CLIENT_SECRET;
+  const CLIENT_ID = globalThis.process.env.CONVEX_OAUTH_CLIENT_ID;
+  const CLIENT_SECRET = globalThis.process.env.CONVEX_OAUTH_CLIENT_SECRET;
   
   if (!CLIENT_ID || !CLIENT_SECRET) {
     return json({ error: 'Missing Convex OAuth credentials' }, { status: 500 });
@@ -73,8 +73,8 @@ export async function action({ request, params }: LoaderFunctionArgs) {
   const path = `/${params['*'] || ''}`; // Get the catch-all parameter
   
   // Get the Convex OAuth credentials
-  const CLIENT_ID = process.env.CONVEX_OAUTH_CLIENT_ID;
-  const CLIENT_SECRET = process.env.CONVEX_OAUTH_CLIENT_SECRET;
+  const CLIENT_ID = globalThis.process.env.CONVEX_OAUTH_CLIENT_ID;
+  const CLIENT_SECRET = globalThis.process.env.CONVEX_OAUTH_CLIENT_SECRET;
   
   if (!CLIENT_ID || !CLIENT_SECRET) {
     return json({ error: 'Missing Convex OAuth credentials' }, { status: 500 });
