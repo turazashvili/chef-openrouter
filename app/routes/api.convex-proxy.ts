@@ -5,7 +5,7 @@ import { json } from '@vercel/remix';
 // with proper Convex Dashboard authentication
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
-  const path = url.pathname.replace('/api/convex', ''); // Remove /api/convex prefix
+  const path = url.pathname.replace('/api/convex-proxy', ''); // Remove /api/convex-proxy prefix
   
   // Get the Convex OAuth credentials
   const CLIENT_ID = process.env.CONVEX_OAUTH_CLIENT_ID;
@@ -70,7 +70,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 // Handle POST requests as well
 export async function action({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
-  const path = url.pathname.replace('/api/convex', ''); // Remove /api/convex prefix
+  const path = url.pathname.replace('/api/convex-proxy', ''); // Remove /api/convex-proxy prefix
   
   // Get the Convex OAuth credentials
   const CLIENT_ID = process.env.CONVEX_OAUTH_CLIENT_ID;
