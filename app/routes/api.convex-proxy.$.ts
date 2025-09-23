@@ -32,41 +32,59 @@ async function handleProxyRequest({ request, params }: LoaderFunctionArgs) {
   console.log('✅ Using WorkOS token for authentication');
 
   try {
-    // First, exchange the WorkOS token for a Convex Dashboard token
-    console.log('🔄 Exchanging WorkOS token for Convex Dashboard token...');
+    // Get the Convex OAuth credentials
+    const CLIENT_ID = globalThis.process.env.CONVEX_OAUTH_CLIENT_ID;
+    const CLIENT_SECRET = globalThis.process.env.CONVEX_OAUTH_CLIENT_SECRET;
+    const PROVISION_HOST = globalThis.process.env.PROVISION_HOST || 'https://api.convex.dev';
     
-    const tokenExchangeResponse = await fetch('https://api.convex.dev/oauth/token', {
+    console.log('🔑 OAuth credentials:', {
+      hasClientId: !!CLIENT_ID,
+      hasClientSecret: !!CLIENT_SECRET,
+      provisionHost: PROVISION_HOST
+    });
+
+    if (!CLIENT_ID || !CLIENT_SECRET) {
+      console.error('❌ Missing Convex OAuth credentials');
+      return json({ error: 'Missing Convex OAuth credentials' }, { status: 500 });
+    }
+
+    // Use the WorkOS token as the authorization code (this is a workaround)
+    // In a real implementation, you'd need to get an actual authorization code
+    console.log('🔄 Using WorkOS token as authorization code...');
+    
+    const tokenResponse = await fetch(`${PROVISION_HOST}/oauth/token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        grant_type: 'urn:ietf:params:oauth:grant-type:token-exchange',
-        subject_token: workosToken,
-        subject_token_type: 'urn:ietf:params:oauth:token-type:access_token',
-        audience: 'https://api.convex.dev',
+        grant_type: 'authorization_code',
+        code: workosToken, // Using WorkOS token as the code
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        redirect_uri: url.origin + '/convex/callback',
       }),
     });
 
-    console.log('📡 Token exchange response:', {
-      status: tokenExchangeResponse.status,
-      statusText: tokenExchangeResponse.statusText,
-      ok: tokenExchangeResponse.ok,
-      headers: Object.fromEntries(tokenExchangeResponse.headers.entries())
+    console.log('📡 Token response:', {
+      status: tokenResponse.status,
+      statusText: tokenResponse.statusText,
+      ok: tokenResponse.ok,
+      headers: Object.fromEntries(tokenResponse.headers.entries())
     });
 
-    if (!tokenExchangeResponse.ok) {
-      const errorText = await tokenExchangeResponse.text();
-      console.error('❌ Failed to exchange WorkOS token:', {
-        status: tokenExchangeResponse.status,
-        statusText: tokenExchangeResponse.statusText,
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text();
+      console.error('❌ Failed to get Convex Dashboard token:', {
+        status: tokenResponse.status,
+        statusText: tokenResponse.statusText,
         error: errorText
       });
-      return json({ error: 'Failed to exchange WorkOS token for Convex Dashboard token' }, { status: 500 });
+      return json({ error: 'Failed to get Convex Dashboard token' }, { status: 500 });
     }
 
-    const tokenData = await tokenExchangeResponse.json();
-    console.log('✅ Token exchange successful:', {
+    const tokenData = await tokenResponse.json();
+    console.log('✅ Token received:', {
       hasAccessToken: !!tokenData.access_token,
       tokenType: tokenData.token_type,
       expiresIn: tokenData.expires_in
