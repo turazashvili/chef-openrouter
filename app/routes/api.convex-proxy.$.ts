@@ -3,9 +3,9 @@ import { json } from '@vercel/remix';
 
 // This proxy route handles all /api/convex/* requests and forwards them to api.convex.dev
 // with proper Convex Dashboard authentication
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const url = new URL(request.url);
-  const path = url.pathname.replace('/api/convex-proxy', ''); // Remove /api/convex-proxy prefix
+  const path = `/${params['*'] || ''}`; // Get the catch-all parameter
   
   // Get the Convex OAuth credentials
   const CLIENT_ID = process.env.CONVEX_OAUTH_CLIENT_ID;
@@ -68,9 +68,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 // Handle POST requests as well
-export async function action({ request }: LoaderFunctionArgs) {
+export async function action({ request, params }: LoaderFunctionArgs) {
   const url = new URL(request.url);
-  const path = url.pathname.replace('/api/convex-proxy', ''); // Remove /api/convex-proxy prefix
+  const path = `/${params['*'] || ''}`; // Get the catch-all parameter
   
   // Get the Convex OAuth credentials
   const CLIENT_ID = process.env.CONVEX_OAUTH_CLIENT_ID;
